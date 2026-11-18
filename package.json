@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node -e \"const {CentralIntelligence}=require('./ai/central-core'); const c=new CentralIntelligence(); console.log(c.status());\""
+    "test": "node --test"
   },
   "dependencies": {
     "express": "^4.19.2",
