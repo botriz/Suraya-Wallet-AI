@@ -37,8 +37,15 @@ try {
 var app = express();
 var PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+if (process.env.CORS_ORIGINS) {
+  var allowedOrigins = new Set(process.env.CORS_ORIGINS.split(',').map(function (value) { return value.trim(); }).filter(Boolean));
+  app.use(cors({ origin: function (origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+    return callback(new Error('Origin not allowed'));
+  }}));
+}
+app.use(express.json({ limit: '16kb' }));
+app.use('/api', require('./security/safe-mode'));
 
 var central = new CentralIntelligence();
 var wallets = new Map();
