@@ -1,21 +1,35 @@
-name: Wallet security tests
+name: Wallet security and container checks
 
 on:
   push:
     branches:
       - main
-      - security/disable-unsafe-wallet-actions-2026-11
+      - "feat/**"
+      - "feature/**"
+      - "security/**"
   pull_request:
     branches:
-      - main
+      - "**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wallet-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
+  checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm test
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Syntax and safety tests
+        run: npm run check
+      - name: Build container
+        run: docker build -t suraya-wallet-ai:ci .
