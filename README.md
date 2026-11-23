@@ -16,6 +16,17 @@ The prototype does not yet provide durable encrypted private-key custody, accoun
 
 Cross-origin access is disabled by default. If a separate trusted frontend is required, set `CORS_ORIGINS` to a comma-separated allowlist of exact origins.
 
+## Deployment preparation
+
+A non-root Node 20 container is provided for isolated staging checks:
+
+```bash
+docker build -t suraya-wallet-ai .
+docker run --rm -p 3000:3000 -e PORT=3000 suraya-wallet-ai
+```
+
+The liveness endpoint is `GET /health`. The container is deliberately a read-only prototype: wallet creation, manual credits, policy changes, and agent mutations remain HTTP 503. Do not enable these routes or connect real funds during deployment preparation.
+
 ## Local checks
 
 ```bash
@@ -24,7 +35,7 @@ npm test
 npm start
 ```
 
-The automated tests verify that the unsafe mutation endpoints fail closed. Passing these tests does not make the wallet production-ready.
+The automated tests verify that the unsafe mutation endpoints fail closed. CI also builds the container. Passing these checks does not make the wallet production-ready or authorize custody, payments, exchange trading, or public user accounts.
 
 ## Required work before real funds
 
