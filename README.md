@@ -22,10 +22,10 @@ A non-root Node 20 container is provided for isolated staging checks:
 
 ```bash
 docker build -t suraya-wallet-ai .
-docker run --rm -p 3000:3000 -e PORT=3000 suraya-wallet-ai
+docker run --rm -p 127.0.0.1:3000:3000 -e PORT=3000 suraya-wallet-ai
 ```
 
-The liveness endpoint is `GET /health`. The container is deliberately a read-only prototype: wallet creation, manual credits, policy changes, and agent mutations remain HTTP 503. Do not enable these routes or connect real funds during deployment preparation.
+The liveness endpoint is `GET /health`. The provided `compose.yaml` binds the app to loopback only, uses a read-only filesystem, drops Linux capabilities, and sets `no-new-privileges`. Put a TLS reverse proxy in front of it; do not expose port 3000 directly to the internet. Use `docker compose config --quiet` and `docker compose up -d --build` after setting any required `CORS_ORIGINS` allowlist. The container is deliberately a read-only prototype: wallet creation, manual credits, policy changes, and agent mutations remain HTTP 503. Do not enable these routes or connect real funds during deployment preparation.
 
 ## Local checks
 
