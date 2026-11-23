@@ -35,7 +35,15 @@ try {
 }
 
 var app = express();
-var PORT = process.env.PORT || 3000;
+var PORT = Number(process.env.PORT) || 3000;
+
+app.disable('x-powered-by');
+app.use(function (_req, res, next) {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.set('X-Frame-Options', 'DENY');
+  next();
+});
 
 if (process.env.CORS_ORIGINS) {
   var allowedOrigins = new Set(process.env.CORS_ORIGINS.split(',').map(function (value) { return value.trim(); }).filter(Boolean));
@@ -49,6 +57,12 @@ app.use('/api', require('./security/safe-mode'));
 
 var central = new CentralIntelligence();
 var wallets = new Map();
+
+// Liveness is public and intentionally reveals no wallet or policy state.
+app.get('/health', function (_req, res) {
+  res.set('Cache-Control', 'no-store');
+  res.json({ ok: true, service: 'Suraya Wallet-AI', mode: 'read-only-prototype' });
+});
 
 // صفحه کیف
 app.get('/', function (req, res) {
@@ -140,7 +154,20 @@ app.post('/api/agent/sync', function (req, res) {
   res.json(result);
 });
 
-app.listen(PORT, function () {
-  console.log('Suraya Wallet-AI running on http://localhost:' + PORT);
-  console.log('Policy version', central.policy.version);
+var server = app.listen(PORT, '0.0.0.0', function () {
+  console.log('Suraya Wallet-AI listening on port ' + server.address().port);
+  console.log('Mode: read-only prototype; wallet and policy mutations are disabled');
 });
+
+function shutdown(signal) {
+  console.log(signal + ' received; closing HTTP server');
+  server.close(function () {
+    process.exit(0);
+  });
+  setTimeout(function () {
+    process.exit(1);
+  }, 10000).unref();
+}
+
+process.once('SIGTERM', function () { shutdown('SIGTERM'); });
+process.once('SIGINT', function () { shutdown('SIGINT'); });
