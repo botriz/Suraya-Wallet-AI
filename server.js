@@ -35,7 +35,7 @@ try {
 }
 
 var app = express();
-var PORT = Number(process.env.PORT) || 3000;
+var PORT = process.env.PORT === undefined ? 3000 : Number(process.env.PORT);
 
 app.disable('x-powered-by');
 app.use(function (_req, res, next) {
